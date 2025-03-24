@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-deployment
+  namespace: voice-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+      - name: db
+        image: abhishekanbu01/db5:latest  # Updated to match your docker run command
+        ports:
+        - containerPort: 3306
+        - containerPort: 33060
+        args:
+        - "--default-authentication-plugin=mysql_native_password"
+        - "--character-set-server=utf8mb4"
+        - "--collation-server=utf8mb4_general_ci"
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: voice-ai-secrets
+              key: DB_PASSWORD
+        resources:
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+        volumeMounts:
+        - name: db-persistent-storage
+          mountPath: /var/lib/mysql
+        readinessProbe:
+          exec:
+            command: ["mysqladmin", "ping", "-h", "localhost"]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+      volumes:
+      - name: db-persistent-storage
+        persistentVolumeClaim:
+          claimName: db-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-pvc
+  namespace: voice-ai
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+  namespace: voice-ai
+spec:
+  selector:
+    app: db
+  ports:
+  - name: mysql
+    port: 3306
+    targetPort: 3306
+  - name: mysqlx
+    port: 33060
+    targetPort: 33060
+  type: ClusterIP

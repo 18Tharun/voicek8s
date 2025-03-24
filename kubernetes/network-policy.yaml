@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: voice-ai-network-policy
+  namespace: voice-ai
+spec:
+  podSelector: {}  # Select all pods in the namespace
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector: {}  # Allow all pods in the namespace to communicate with each other
+                       # This simulates the livekit-network Docker network behavior
+  egress:
+  - to:
+    - podSelector: {}  # Allow all outbound traffic within namespace
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53  # Allow DNS resolution

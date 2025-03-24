@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: voice-ai-config
+  namespace: voice-ai
+data:
+  # Common environment variables
+  APP_ENV: "production"
+  DB_HOST: "db-service"
+  DB_PORT: "3306"  # Updated to MySQL port
+  DB_USER: "root"
+  DB_NAME: "real_estate_calls_db"
+  FRONTEND_URL: "https://your-app-domain.com"
+  BACKEND_URL: "http://backend-service:3000"
+  CALLER_URL: "http://caller-service:3001"
+  VOICE_AGENT_URL: "http://voice-agent-service:3002"
